@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # PHP Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tlyn-app
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    depends_on:
+      - db
+      - redis
+    networks:
+      - tlyn-network
+
+  # Nginx Service
+  nginx:
+    image: nginx:alpine
+    container_name: tlyn-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app
+    networks:
+      - tlyn-network
+
+  # MySQL Service
+  db:
+    image: mysql:8.0
+    container_name: tlyn-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/my.cnf
+    ports:
+      - "${DB_PORT}:3306"
+    networks:
+      - tlyn-network
+
+  # Redis Service
+  redis:
+    image: redis:alpine
+    container_name: tlyn-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT}:6379"
+    networks:
+      - tlyn-network
+
+networks:
+  tlyn-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+    driver: local 
