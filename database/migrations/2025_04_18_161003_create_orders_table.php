@@ -17,11 +17,11 @@ return new class extends Migration
             $table->foreignId('base_coin_id')->constrained('coins')->onDelete('cascade');
             $table->foreignId('quote_coin_id')->constrained('coins')->onDelete('cascade');
             $table->enum('type', ['BUY', 'SELL']);
-            $table->decimal('amount', 18, 8)->default(0);
-            $table->decimal('remaining_amount', 18, 8)->default(0);
-            $table->decimal('filled_amount', 18, 8)->default(0);
-            $table->decimal('price', 18, 8)->default(0);
-            $table->decimal('total', 18, 8)->default(0);
+            $table->decimal('amount', 18, 8)->default(0)->unsigned();
+            $table->decimal('remaining_amount', 18, 8)->default(0)->unsigned();
+            $table->decimal('filled_amount', 18, 8)->default(0)->unsigned();
+            $table->decimal('price', 18, 8)->default(0)->unsigned();
+            $table->decimal('total', 18, 8)->default(0)->unsigned();
             $table->enum('status', ['OPEN', 'COMPLETED', 'CANCELED'])->default('OPEN');
             $table->timestamps();
 
