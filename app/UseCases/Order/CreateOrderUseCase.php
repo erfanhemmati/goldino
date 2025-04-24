@@ -74,7 +74,7 @@ class CreateOrderUseCase extends BaseUseCase
         });
 
         // perform matching after order creation
-        // $this->matchingService->processOrder($order->id);
+        $this->matchingService->processOrder($order->id);
 
         return OrderDto::fromModel($order);
     }

@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Models\Order;
+use App\Models\Trade;
 use App\Enums\OrderType;
+use App\Events\TradeExecuted;
 use Illuminate\Support\Facades\DB;
 use App\Services\Interfaces\MatchingServiceInterface;
 use App\Repositories\Interfaces\OrderRepositoryInterface;
@@ -126,6 +128,11 @@ class MatchingService implements MatchingServiceInterface
                     'total'             => $fill * $price,
                     'fee'               => $fee,
                 ]);
+
+                /**
+                 * @var Trade $trade
+                 */
+                event(new TradeExecuted($trade));
 
                 $filledTrades[] = $trade;
             }
