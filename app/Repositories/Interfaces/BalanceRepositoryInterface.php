@@ -52,4 +52,24 @@ interface BalanceRepositoryInterface extends RepositoryInterface
      * @return Balance
      */
     public function unlockFunds(int $userId, int $coinId, float $amount): Balance;
+
+    /**
+     * Permanently withdraw funds from the locked balance when a trade executes.
+     *
+     * @param int $userId
+     * @param int $coinId
+     * @param float $amount
+     * @return Balance
+     */
+    public function withdrawLockedFunds(int $userId, int $coinId, float $amount): Balance;
+
+    /**
+     * Credit funds to the available balance when a trade executes.
+     *
+     * @param int $userId
+     * @param int $coinId
+     * @param float $amount
+     * @return Balance
+     */
+    public function creditFunds(int $userId, int $coinId, float $amount): Balance;
 }

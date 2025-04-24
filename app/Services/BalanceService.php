@@ -113,4 +113,42 @@ class BalanceService implements BalanceServiceInterface
             return $this->balanceRepository->unlockFunds($userId, $coinId, $amount);
         });
     }
+
+    /**
+     * Permanently withdraw funds from the locked balance when a trade executes.
+     *
+     * @param int $userId
+     * @param int $coinId
+     * @param float $amount
+     * @return Balance
+     */
+    public function withdrawLockedFunds(int $userId, int $coinId, float $amount): Balance
+    {
+        return DB::transaction(function () use ($userId, $coinId, $amount) {
+            // clear relevant caches
+            $this->cache->forget($this->getUserBalancesCacheKey($userId));
+            $this->cache->forget($this->getUserCoinBalanceCacheKey($userId, $coinId));
+
+            return $this->balanceRepository->withdrawLockedFunds($userId, $coinId, $amount);
+        });
+    }
+
+    /**
+     * Credit funds to the available balance when a trade executes.
+     *
+     * @param int $userId
+     * @param int $coinId
+     * @param float $amount
+     * @return Balance
+     */
+    public function creditFunds(int $userId, int $coinId, float $amount): Balance
+    {
+        return DB::transaction(function () use ($userId, $coinId, $amount) {
+            // clear relevant caches
+            $this->cache->forget($this->getUserBalancesCacheKey($userId));
+            $this->cache->forget($this->getUserCoinBalanceCacheKey($userId, $coinId));
+
+            return $this->balanceRepository->creditFunds($userId, $coinId, $amount);
+        });
+    }
 }

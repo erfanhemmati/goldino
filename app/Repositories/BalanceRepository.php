@@ -87,4 +87,50 @@ class BalanceRepository extends BaseRepository implements BalanceRepositoryInter
 
         return $balance;
     }
+
+    /**
+     * Permanently withdraw funds from the locked balance when a trade executes.
+     *
+     * @param int $userId
+     * @param int $coinId
+     * @param float $amount
+     * @return Balance
+     */
+    public function withdrawLockedFunds(int $userId, int $coinId, float $amount): Balance
+    {
+        $balance = $this->model->query()
+            ->where('user_id', $userId)
+            ->where('coin_id', $coinId)
+            ->lockForUpdate()
+            ->firstOrFail();
+
+        $balance->locked_amount   -= $amount;
+        $balance->total_amount    -= $amount;
+        $balance->save();
+
+        return $balance;
+    }
+
+    /**
+     * Credit funds to the available balance when a trade executes.
+     *
+     * @param int $userId
+     * @param int $coinId
+     * @param float $amount
+     * @return Balance
+     */
+    public function creditFunds(int $userId, int $coinId, float $amount): Balance
+    {
+        $balance = $this->model->query()
+            ->where('user_id', $userId)
+            ->where('coin_id', $coinId)
+            ->lockForUpdate()
+            ->firstOrFail();
+
+        $balance->available_amount += $amount;
+        $balance->total_amount     += $amount;
+        $balance->save();
+
+        return $balance;
+    }
 }
