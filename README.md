@@ -33,37 +33,20 @@ A RESTful API for gold trading between users with order matching functionality d
    cd goldino
    ```
 
-2. Copy the environment file:
+2. Copy the environment file and configure your settings:
    ```
    cp .env.example .env
    ```
+   - Update database credentials and other environment variables as needed.
 
-3. Configure the .env file with your settings:
-   - Update database credentials
-   - Set application key
-   - Configure other environment variables as needed
-
-4. Start the Docker containers:
+3. Build and start the Docker containers:
    ```
-   docker compose up -d
+   docker compose up -d --build
    ```
 
-5. Install dependencies:
-   ```
-   docker compose exec app composer install
-   ```
+4. The application will automatically install dependencies, generate the application key, run migrations, and seed the database.
 
-6. Generate application key:
-   ```
-   docker compose exec app php artisan key:generate
-   ```
-
-7. Run migrations and seeders:
-   ```
-   docker compose exec app php artisan migrate --seed
-   ```
-
-8. Optimize the application:
+5. (Optional) To optimize performance, cache the configuration and routes:
    ```
    docker compose exec app php artisan config:cache
    docker compose exec app php artisan route:cache
