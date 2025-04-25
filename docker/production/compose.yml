@@ -1,0 +1,31 @@
+services:
+  goldino-api:
+    image: ttl.sh/goldino/api:${TAG:-latest}
+    restart: unless-stopped
+    env_file: ".env"
+    environment:
+      - CONTAINER_ROLE=apache2
+    networks:
+      - web
+      - modules
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.api.entrypoints=http"
+      - "traefik.http.routers.api.rule=Host(`api.goldino.ir`)"
+      - "traefik.http.services.api.loadbalancer.server.port=80"
+
+  goldino-queue:
+    image: ttl.sh/goldino/api:${TAG:-latest}
+    restart: unless-stopped
+    env_file: ".env"
+    environment:
+      - CONTAINER_ROLE=queue
+    networks:
+      - modules
+
+networks:
+  modules:
+    external: true
+  web:
+    external: true

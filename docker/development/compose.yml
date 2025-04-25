@@ -1,0 +1,59 @@
+services:
+  goldino-api:
+    image: goldino:latest
+#    build:
+#      context: .
+#      dockerfile: ../Dockerfile
+    env_file: ".local.env"
+    ports:
+      - "127.0.0.1:8000:80"
+    environment:
+      - CONTAINER_ROLE=apache2
+    depends_on:
+      - mysql
+
+  goldino-queue:
+    image: goldino:latest
+#    build:
+#      context: .
+#      dockerfile: ../Dockerfile
+    env_file: ".local.env"
+    environment:
+      - CONTAINER_ROLE=queue
+
+  mysql:
+    image: docker.arvancloud.ir/mysql:9.2
+    ports:
+      - "127.0.0.1:3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "b8cc3bf4fc51fd41"
+      MYSQL_USER: "goldinoapiuser"
+      MYSQL_PASSWORD: "3ddf7a5955f310a9"
+      MYSQL_DATABASE: "goldinoapidb"
+    volumes:
+      - "mysql_data:/var/lib/mysql"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  redis:
+    image: docker.arvancloud.ir/redis:7.4
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - "redis_data:/data"
+    command:
+      - "redis-server"
+      - "--requirepass"
+      - "695b94cd202e608a"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  mysql_data:
+  redis_data:
