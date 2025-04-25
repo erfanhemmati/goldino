@@ -1,10 +1,5 @@
 FROM php:8.2-fpm
 
-# Arguments defined in docker-compose.yml
-ARG user=goldino
-ARG uid=1000
-
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -12,26 +7,27 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     zip \
-    unzip
+    unzip \
+    libzip-dev \
+    default-mysql-client \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
-
-# Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Create system user to run Composer and Artisan Commands
-RUN useradd -G www-data,root -u $uid -d /home/$user $user
-RUN mkdir -p /home/$user/.composer && \
-    chown -R $user:$user /home/$user
+WORKDIR /var/www/html
 
-# Set working directory
-WORKDIR /var/www
+COPY composer.json composer.lock ./
+COPY . .
 
-# Copy custom PHP config
-COPY docker/php/local.ini /usr/local/etc/php/conf.d/local.ini
+RUN composer install --optimize-autoloader --no-dev --no-interaction
 
-USER $user
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+EXPOSE 9000
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["php-fpm"]

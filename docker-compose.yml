@@ -1,60 +1,104 @@
 services:
   app:
     build:
-      args:
-        user: goldino
-        uid: 1000
-      context: ./
+      context: .
       dockerfile: Dockerfile
-    image: goldino-app
-    container_name: goldino-app
+    image: goldino_app
+    container_name: goldino_app
+    env_file:
+      - .env
+    environment:
+      DB_HOST: mysql
+      DB_DATABASE: goldino
+      DB_USERNAME: goldino
+      DB_PASSWORD: goldino
+      REDIS_HOST: redis
+      CACHE_DRIVER: redis
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      MIGRATE: "false"
     restart: unless-stopped
-    working_dir: /var/www
+    working_dir: /var/www/html
     volumes:
-      - ./:/var/www
+      - ./:/var/www/html
+      - ./storage:/var/www/html/storage
     networks:
-      - goldino-network
+      - goldino_network
 
-  db:
+  webserver:
+    image: nginx:alpine
+    container_name: goldino_webserver
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+    depends_on:
+      - app
+    networks:
+      - goldino_network
+
+  mysql:
     image: mysql:8.0
-    container_name: goldino-db
+    container_name: goldino_mysql
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_USER: ${DB_USERNAME}
-      SERVICE_TAGS: dev
-      SERVICE_NAME: mysql
-    volumes:
-      - ./docker/mysql/data:/var/lib/mysql
-      - ./docker/mysql/my.cnf:/etc/mysql/my.cnf
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: goldino
+      MYSQL_USER: goldino
+      MYSQL_PASSWORD: goldino
     ports:
-      - 3306:3306
-    networks:
-      - goldino-network
-
-  nginx:
-    image: nginx:alpine
-    container_name: goldino-nginx
-    restart: unless-stopped
-    ports:
-      - 8000:80
+      - "3306:3306"
     volumes:
-      - ./:/var/www
-      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+      - mysql_data:/var/lib/mysql
     networks:
-      - goldino-network
+      - goldino_network
 
   redis:
     image: redis:alpine
-    container_name: goldino-redis
+    container_name: goldino_redis
     restart: unless-stopped
     ports:
-      - 6379:6379
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
     networks:
-      - goldino-network
+      - goldino_network
+
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: goldino_queue
+    container_name: goldino_queue
+    env_file:
+      - .env
+    environment:
+      DB_HOST: mysql
+      DB_DATABASE: goldino
+      DB_USERNAME: goldino
+      DB_PASSWORD: goldino
+      REDIS_HOST: redis
+      CACHE_DRIVER: redis
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      MIGRATE: "false"
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    command: php artisan queue:work --tries=3 --sleep=3 --timeout=90
+    depends_on:
+      - redis
+      - mysql
+    networks:
+      - goldino_network
 
 networks:
-  goldino-network:
+  goldino_network:
     driver: bridge
+
+volumes:
+  mysql_data:
+  redis_data:
