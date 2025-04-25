@@ -33,29 +33,38 @@ A RESTful API for gold trading between users with order matching functionality d
    cd goldino
    ```
 
-2. Copy the environment file and configure your settings:
-   ```
-   cp .env.example .env
-   ```
-   - Update database credentials and other environment variables as needed.
+2. Configure environment variables:
+   - Optionally copy the example env file:
+     ```
+     cp .env.example .env
+     ```
+   - Update settings as needed.
+   - The Docker development environment file is located at `docker/development/.local.env`. Modify it if needed.
 
-3. Build and start the Docker containers:
+3. Build the Docker image:
    ```
-   docker compose up -d --build
-   ```
-
-4. (First-time only) Install PHP dependencies inside the container:
-   ```
-   docker compose exec app composer install --optimize-autoloader --no-dev
+   docker build -t goldino -f docker/Dockerfile .
    ```
 
-5. The application will automatically generate the application key, run migrations, and seed the database on first run.
+4. Start the development environment:
+   ```
+   docker compose -f docker/development/compose.yml up -d
+   ```
 
-6. (Optional) To optimize performance, cache the configuration and routes:
+5. (First-time only) Install PHP dependencies inside the `goldino-api` container:
    ```
-   docker compose exec app php artisan config:cache
-   docker compose exec app php artisan route:cache
+   docker compose -f docker/development/compose.yml exec goldino-api composer install --optimize-autoloader --no-dev
    ```
+
+6. The application will automatically run migrations, seed the database, and cache configuration on container startup.
+
+7. Access the application at http://127.0.0.1:8000.
+
+(Optional) To optimize performance, cache the configuration and routes:
+```
+docker compose -f docker/development/compose.yml exec goldino-api php artisan config:cache
+docker compose -f docker/development/compose.yml exec goldino-api php artisan route:cache
+```
 
 ### Manual Installation
 
