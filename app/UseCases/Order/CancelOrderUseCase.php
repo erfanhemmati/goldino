@@ -55,7 +55,7 @@ class CancelOrderUseCase extends BaseUseCase
                 $canceledOrder->baseCoinId;
 
             $unlockAmount  = ($canceledOrder->type == OrderType::BUY->value) ?
-                ($canceledOrder->remainingAmount * $canceledOrder->price) * 10 :
+                $canceledOrder->remainingAmount * $canceledOrder->price :
                 $canceledOrder->remainingAmount;
 
             // unlock funds
@@ -65,7 +65,5 @@ class CancelOrderUseCase extends BaseUseCase
         });
 
         return $order;
-
-        // TODO: matching process.
     }
 }

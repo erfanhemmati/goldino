@@ -19,7 +19,8 @@ final class TradeDto
         public float  $amount,
         public float  $price,
         public float  $total,
-        public float  $fee,
+        public float  $buyerFee,
+        public float  $sellerFee,
         public Carbon $createdAt,
         public Carbon $updatedAt,
     ) {}
@@ -38,7 +39,8 @@ final class TradeDto
             amount:          (float) $trade->amount,
             price:           (float) $trade->price,
             total:           (float) $trade->total,
-            fee:             (float) $trade->fee,
+            buyerFee:        (float) $trade->buyer_fee,
+            sellerFee:       (float) $trade->seller_fee,
             createdAt:       Carbon::parse($trade->created_at),
             updatedAt:       Carbon::parse($trade->updated_at),
         );
@@ -58,9 +60,10 @@ final class TradeDto
             'amount'          => $this->amount,
             'price'           => $this->price,
             'total'           => $this->total,
-            'fee'             => $this->fee,
+            'buyer_fee'       => $this->buyerFee,
+            'seller_fee'      => $this->sellerFee,
             'created_at'      => $this->createdAt,
             'updated_at'      => $this->updatedAt,
         ];
     }
-} 
+}

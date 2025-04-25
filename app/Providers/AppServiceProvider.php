@@ -17,9 +17,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(\App\Repositories\Interfaces\OrderRepositoryInterface::class, \App\Repositories\OrderRepository::class);
         $this->app->bind(\App\Repositories\Interfaces\BalanceRepositoryInterface::class, \App\Repositories\BalanceRepository::class);
         $this->app->bind(\App\Repositories\Interfaces\TradeRepositoryInterface::class, \App\Repositories\TradeRepository::class);
-        $this->app->bind(\App\Repositories\Interfaces\FeeRepositoryInterface::class, \App\Repositories\FeeRepository::class);
-        $this->app->bind(\App\Repositories\Interfaces\MatchingRepositoryInterface::class, \App\Repositories\MatchingRepository::class);
-        
+
         // Bind services
         $this->app->bind(\App\Services\Interfaces\AuthServiceInterface::class, \App\Services\AuthService::class);
         $this->app->bind(\App\Services\Interfaces\BalanceServiceInterface::class, \App\Services\BalanceService::class);

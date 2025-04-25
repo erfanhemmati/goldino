@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Balance;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
 use App\Repositories\Interfaces\BalanceRepositoryInterface;
 
@@ -53,39 +54,29 @@ class BalanceRepository extends BaseRepository implements BalanceRepositoryInter
     /**
      * @inheritDoc
      */
-    public function lockFunds(int $userId, int $coinId, float $amount): Balance
+    public function lockFunds(int $userId, int $coinId, float $amount): int
     {
-        // Get the balance with locking
-        $balance = $this->model->query()->where('user_id', $userId)
+        return $this->model->query()
+            ->where('user_id', $userId)
             ->where('coin_id', $coinId)
-            ->lockForUpdate()
-            ->firstOrFail();
-
-        // Update the balance
-        $balance->available_amount  -= $amount;
-        $balance->locked_amount     += $amount;
-        $balance->save();
-
-        return $balance;
+            ->update([
+                'available_amount'  => DB::raw("available_amount - {$amount}"),
+                'locked_amount'     => DB::raw("locked_amount + {$amount}"),
+            ]);
     }
 
     /**
      * @inheritDoc
      */
-    public function unlockFunds(int $userId, int $coinId, float $amount): Balance
+    public function unlockFunds(int $userId, int $coinId, float $amount): int
     {
-        // Get the balance with locking
-        $balance = $this->model->query()->where('user_id', $userId)
+        return $this->model->query()
+            ->where('user_id', $userId)
             ->where('coin_id', $coinId)
-            ->lockForUpdate()
-            ->firstOrFail();
-
-        // Update the balance
-        $balance->locked_amount     -= $amount;
-        $balance->available_amount  += $amount;
-        $balance->save();
-
-        return $balance;
+            ->update([
+                'locked_amount'     => DB::raw("locked_amount - {$amount}"),
+                'available_amount'  => DB::raw("available_amount + {$amount}"),
+            ]);
     }
 
     /**
@@ -94,21 +85,18 @@ class BalanceRepository extends BaseRepository implements BalanceRepositoryInter
      * @param int $userId
      * @param int $coinId
      * @param float $amount
-     * @return Balance
+     * @return int
      */
-    public function withdrawLockedFunds(int $userId, int $coinId, float $amount): Balance
+    public function withdrawLockedFunds(int $userId, int $coinId, float $amount): int
     {
-        $balance = $this->model->query()
+        return $this->model->query()
             ->where('user_id', $userId)
             ->where('coin_id', $coinId)
             ->lockForUpdate()
-            ->firstOrFail();
-
-        $balance->locked_amount   -= $amount;
-        $balance->total_amount    -= $amount;
-        $balance->save();
-
-        return $balance;
+            ->update([
+                'total_amount'      => DB::raw("total_amount  - {$amount}"),
+                'locked_amount'     => DB::raw("locked_amount - {$amount}")
+            ]);
     }
 
     /**
@@ -117,20 +105,17 @@ class BalanceRepository extends BaseRepository implements BalanceRepositoryInter
      * @param int $userId
      * @param int $coinId
      * @param float $amount
-     * @return Balance
+     * @return int
      */
-    public function creditFunds(int $userId, int $coinId, float $amount): Balance
+    public function creditFunds(int $userId, int $coinId, float $amount): int
     {
-        $balance = $this->model->query()
+        return $this->model->query()
             ->where('user_id', $userId)
             ->where('coin_id', $coinId)
             ->lockForUpdate()
-            ->firstOrFail();
-
-        $balance->available_amount += $amount;
-        $balance->total_amount     += $amount;
-        $balance->save();
-
-        return $balance;
+            ->update([
+                'total_amount'      => DB::raw("total_amount + {$amount}"),
+                'available_amount'  => DB::raw("available_amount + {$amount}")
+            ]);
     }
 }

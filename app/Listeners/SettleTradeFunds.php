@@ -3,16 +3,26 @@
 namespace App\Listeners;
 
 use App\Events\TradeExecuted;
-use App\Services\Interfaces\BalanceServiceInterface;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Services\Interfaces\BalanceServiceInterface;
 
-class SettleTradeFunds
+class SettleTradeFunds implements ShouldQueue
 {
-    private BalanceServiceInterface $balances;
+    /**
+     * @var BalanceServiceInterface     $balanceService
+     */
+    private BalanceServiceInterface     $balanceService;
 
-    public function __construct(BalanceServiceInterface $balances)
+    /**
+     * @param BalanceServiceInterface   $balanceService
+     */
+    public function __construct
+    (
+        BalanceServiceInterface         $balanceService
+    )
     {
-        $this->balances = $balances;
+        $this->balanceService =         $balanceService;
     }
 
     /**
@@ -22,28 +32,16 @@ class SettleTradeFunds
     {
         $trade = $event->trade;
 
-        // Buyer: burn locked quote, credit base
-        $this->balances->withdrawLockedFunds(
+        $this->balanceService->transferFunds(
             $trade->buyer_user_id,
-            $trade->quote_coin_id,
-            (float) $trade->total
-        );
-        $this->balances->creditFunds(
-            $trade->buyer_user_id,
-            $trade->base_coin_id,
-            (float) $trade->amount
-        );
-
-        // Seller: burn locked base, credit quote minus fee
-        $this->balances->withdrawLockedFunds(
             $trade->seller_user_id,
             $trade->base_coin_id,
-            (float) $trade->amount
-        );
-        $this->balances->creditFunds(
-            $trade->seller_user_id,
             $trade->quote_coin_id,
-            (float) $trade->total - (float) $trade->fee
+            $trade->amount,
+            $trade->total,
+            $trade->buyer_fee,
+            $trade->seller_fee
         );
     }
-} 
+}
+

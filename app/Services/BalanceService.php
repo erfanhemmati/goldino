@@ -65,90 +65,61 @@ class BalanceService implements BalanceServiceInterface
     /**
      * @inheritDoc
      */
-    public function getUserBalanceWithLock(int $userId, int $coinId): ?Balance
+    public function lockFunds(int $userId, int $coinId, float $amount): void
     {
-        return $this->balanceRepository->getUserBalanceWithLock($userId, $coinId);
+        $this->cache->forget($this->getUserBalancesCacheKey($userId));
+        $this->cache->forget($this->getUserCoinBalanceCacheKey($userId, $coinId));
+
+        $balance = $this->balanceRepository->getUserBalanceWithLock($userId, $coinId);
+
+        if (! $balance || $balance->available_amount < $amount) {
+            throw new InsufficientBalanceException('Insufficient balance');
+        }
+
+        // lock balances
+        $this->balanceRepository->lockFunds($userId, $coinId, $amount);
     }
 
     /**
      * @inheritDoc
      */
-    public function lockFunds(int $userId, int $coinId, float $amount): Balance
+    public function unlockFunds(int $userId, int $coinId, float $amount): void
     {
-        return DB::transaction(function () use ($userId, $coinId, $amount) {
-            // First check if user has enough available funds
-            $balance = $this->getUserBalance($userId, $coinId);
-            // $balance = $this->getUserBalanceWithLock($userId, $coinId);
+        $this->cache->forget($this->getUserBalancesCacheKey($userId));
+        $this->cache->forget($this->getUserCoinBalanceCacheKey($userId, $coinId));
 
-            if (! $balance || $balance->available_amount < $amount) {
-                throw new InsufficientBalanceException('Insufficient balance');
-            }
+        $balance = $this->balanceRepository->getUserBalanceWithLock($userId, $coinId);
 
-            // Clear cache
-            $this->cache->forget($this->getUserBalancesCacheKey($userId));
-            $this->cache->forget($this->getUserCoinBalanceCacheKey($userId, $coinId));
+        if (! $balance || $balance->locked_amount < $amount) {
+            throw new InsufficientBalanceException('Insufficient locked funds');
+        }
 
-            return $this->balanceRepository->lockFunds($userId, $coinId, $amount);
-        });
+        $this->balanceRepository->unlockFunds($userId, $coinId, $amount);
     }
 
     /**
      * @inheritDoc
      */
-    public function unlockFunds(int $userId, int $coinId, float $amount): Balance
+    public function transferFunds(int $buyerUserId, int $sellerUserId, int $baseCoinId, int $quoteCoinId, float $amount, float $total, float $buyerFee, float $sellerFee): void
     {
-        return DB::transaction(function () use ($userId, $coinId, $amount) {
-            // First check if user has enough locked funds
-            $balance = $this->getUserBalance($userId, $coinId);
-            // $balance = $this->getUserBalanceWithLock($userId, $coinId);
+        $this->cache->forget($this->getUserBalancesCacheKey($buyerUserId));
+        $this->cache->forget($this->getUserCoinBalanceCacheKey($buyerUserId, $baseCoinId));
+        $this->cache->forget($this->getUserCoinBalanceCacheKey($buyerUserId, $quoteCoinId));
 
-            if (! $balance || $balance->locked_amount < $amount) {
-                throw new InsufficientBalanceException('Insufficient locked funds');
-            }
+        $this->cache->forget($this->getUserBalancesCacheKey($sellerUserId));
+        $this->cache->forget($this->getUserCoinBalanceCacheKey($sellerUserId, $baseCoinId));
+        $this->cache->forget($this->getUserCoinBalanceCacheKey($sellerUserId, $quoteCoinId));
 
-            // Clear cache
-            $this->cache->forget($this->getUserBalancesCacheKey($userId));
-            $this->cache->forget($this->getUserCoinBalanceCacheKey($userId, $coinId));
+        DB::transaction(function () use ($buyerUserId, $sellerUserId, $baseCoinId, $quoteCoinId, $amount, $total, $buyerFee, $sellerFee) {
 
-            return $this->balanceRepository->unlockFunds($userId, $coinId, $amount);
-        });
-    }
+            // buyer
+            $this->balanceRepository->withdrawLockedFunds($buyerUserId, $quoteCoinId, bcmul($total, 1, 8));
+            $this->balanceRepository->creditFunds($buyerUserId, $baseCoinId, bcsub($amount, $buyerFee, 8));
 
-    /**
-     * Permanently withdraw funds from the locked balance when a trade executes.
-     *
-     * @param int $userId
-     * @param int $coinId
-     * @param float $amount
-     * @return Balance
-     */
-    public function withdrawLockedFunds(int $userId, int $coinId, float $amount): Balance
-    {
-        return DB::transaction(function () use ($userId, $coinId, $amount) {
-            // clear relevant caches
-            $this->cache->forget($this->getUserBalancesCacheKey($userId));
-            $this->cache->forget($this->getUserCoinBalanceCacheKey($userId, $coinId));
+            // seller
+            $this->balanceRepository->withdrawLockedFunds($sellerUserId, $baseCoinId, bcmul($amount, 1, 8));
+            $this->balanceRepository->creditFunds($sellerUserId, $quoteCoinId, bcsub($total, $sellerFee, 8));
 
-            return $this->balanceRepository->withdrawLockedFunds($userId, $coinId, $amount);
-        });
-    }
-
-    /**
-     * Credit funds to the available balance when a trade executes.
-     *
-     * @param int $userId
-     * @param int $coinId
-     * @param float $amount
-     * @return Balance
-     */
-    public function creditFunds(int $userId, int $coinId, float $amount): Balance
-    {
-        return DB::transaction(function () use ($userId, $coinId, $amount) {
-            // clear relevant caches
-            $this->cache->forget($this->getUserBalancesCacheKey($userId));
-            $this->cache->forget($this->getUserCoinBalanceCacheKey($userId, $coinId));
-
-            return $this->balanceRepository->creditFunds($userId, $coinId, $amount);
         });
     }
 }

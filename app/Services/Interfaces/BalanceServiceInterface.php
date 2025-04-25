@@ -26,24 +26,15 @@ interface BalanceServiceInterface
     public function getUserBalance(int $userId, int $coinId): ?Balance;
 
     /**
-     * Get user balance for a specific coin with lock.
-     *
-     * @param int $userId
-     * @param int $coinId
-     * @return Balance|null
-     */
-    public function getUserBalanceWithLock(int $userId, int $coinId): ?Balance;
-
-    /**
      * Lock funds for an order.
      *
      * @param int $userId
      * @param int $coinId
      * @param float $amount
-     * @return Balance
+     * @return void
      * @throws InsufficientBalanceException
      */
-    public function lockFunds(int $userId, int $coinId, float $amount): Balance;
+    public function lockFunds(int $userId, int $coinId, float $amount): void;
 
     /**
      * Unlock funds for an order.
@@ -51,28 +42,23 @@ interface BalanceServiceInterface
      * @param int $userId
      * @param int $coinId
      * @param float $amount
-     * @return Balance
+     * @return void
      * @throws InsufficientBalanceException
      */
-    public function unlockFunds(int $userId, int $coinId, float $amount): Balance;
+    public function unlockFunds(int $userId, int $coinId, float $amount): void;
 
     /**
-     * Permanently withdraw funds from the locked balance when a trade executes.
+     * Transfer funds between users after trade executed.
      *
-     * @param int $userId
-     * @param int $coinId
+     * @param int $buyerUserId
+     * @param int $sellerUserId
+     * @param int $baseCoinId
+     * @param int $quoteCoinId
      * @param float $amount
-     * @return \App\Models\Balance
+     * @param float $total
+     * @param float $buyerFee
+     * @param float $sellerFee
+     * @return void
      */
-    public function withdrawLockedFunds(int $userId, int $coinId, float $amount): Balance;
-
-    /**
-     * Credit funds to the available balance when a trade executes (e.g., buyer receives gold or seller receives quote).
-     *
-     * @param int $userId
-     * @param int $coinId
-     * @param float $amount
-     * @return \App\Models\Balance
-     */
-    public function creditFunds(int $userId, int $coinId, float $amount): Balance;
+    public function transferFunds(int $buyerUserId, int $sellerUserId, int $baseCoinId, int $quoteCoinId, float $amount, float $total, float $buyerFee, float $sellerFee): void;
 }

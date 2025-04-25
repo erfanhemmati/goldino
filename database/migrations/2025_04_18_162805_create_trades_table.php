@@ -20,10 +20,11 @@ return new class extends Migration
             $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
             $table->foreignId('base_coin_id')->constrained('coins')->onDelete('cascade');
             $table->foreignId('quote_coin_id')->constrained('coins')->onDelete('cascade');
-            $table->decimal('amount', 18, 8)->default(0)->unsigned();
-            $table->decimal('price', 18, 8)->default(0)->unsigned();
-            $table->decimal('total', 18, 8)->default(0)->unsigned();
-            $table->decimal('fee', 18, 8)->default(0)->unsigned();
+            $table->decimal('amount', 24, 8)->default(0)->unsigned();
+            $table->decimal('price', 24, 8)->default(0)->unsigned();
+            $table->decimal('total', 24, 8)->default(0)->unsigned();
+            $table->decimal('buyer_fee', 24, 8)->default(0)->unsigned();
+            $table->decimal('seller_fee', 24, 8)->default(0)->unsigned();
             $table->timestamps();
         });
     }

@@ -39,9 +39,9 @@ interface BalanceRepositoryInterface extends RepositoryInterface
      * @param int $userId
      * @param int $coinId
      * @param float $amount
-     * @return Balance
+     * @return int
      */
-    public function lockFunds(int $userId, int $coinId, float $amount): Balance;
+    public function lockFunds(int $userId, int $coinId, float $amount): int;
 
     /**
      * Unlock funds for an order.
@@ -49,9 +49,9 @@ interface BalanceRepositoryInterface extends RepositoryInterface
      * @param int $userId
      * @param int $coinId
      * @param float $amount
-     * @return Balance
+     * @return int
      */
-    public function unlockFunds(int $userId, int $coinId, float $amount): Balance;
+    public function unlockFunds(int $userId, int $coinId, float $amount): int;
 
     /**
      * Permanently withdraw funds from the locked balance when a trade executes.
@@ -59,9 +59,9 @@ interface BalanceRepositoryInterface extends RepositoryInterface
      * @param int $userId
      * @param int $coinId
      * @param float $amount
-     * @return Balance
+     * @return int
      */
-    public function withdrawLockedFunds(int $userId, int $coinId, float $amount): Balance;
+    public function withdrawLockedFunds(int $userId, int $coinId, float $amount): int;
 
     /**
      * Credit funds to the available balance when a trade executes.
@@ -69,7 +69,7 @@ interface BalanceRepositoryInterface extends RepositoryInterface
      * @param int $userId
      * @param int $coinId
      * @param float $amount
-     * @return Balance
+     * @return int
      */
-    public function creditFunds(int $userId, int $coinId, float $amount): Balance;
+    public function creditFunds(int $userId, int $coinId, float $amount): int;
 }

@@ -10,29 +10,34 @@ use Illuminate\Support\Facades\DB;
 use App\Services\Interfaces\MatchingServiceInterface;
 use App\Repositories\Interfaces\OrderRepositoryInterface;
 use App\Repositories\Interfaces\TradeRepositoryInterface;
+use App\Services\Interfaces\FeeCalculatorServiceInterface;
 
 class MatchingService implements MatchingServiceInterface
 {
-    private const MIN_FEE = 50000;          // Minimum fee (e.g. 50,000)
-    private const MAX_FEE = 5000000;        // Maximum fee (e.g. 5,000,000)
-
     private OrderRepositoryInterface        $orderRepository;
     /**
      * @var TradeRepositoryInterface        $tradeRepository
      */
     private TradeRepositoryInterface        $tradeRepository;
+    /**
+     * @var FeeCalculatorServiceInterface   $feeCalculator
+     */
+    private FeeCalculatorServiceInterface   $feeCalculator;
 
     /**
      * @param OrderRepositoryInterface      $orderRepository
      * @param TradeRepositoryInterface      $tradeRepository
+     * @param FeeCalculatorServiceInterface $feeCalculator
      */
     public function __construct
     (
         OrderRepositoryInterface            $orderRepository,
         TradeRepositoryInterface            $tradeRepository,
+        FeeCalculatorServiceInterface       $feeCalculator,
     ) {
         $this->orderRepository            = $orderRepository;
         $this->tradeRepository            = $tradeRepository;
+        $this->feeCalculator              = $feeCalculator;
     }
 
     /**
@@ -91,8 +96,9 @@ class MatchingService implements MatchingServiceInterface
                 $buyerOrder  = $taker->isBuyOrder() ? $taker : $maker;
                 $sellerOrder = $taker->isSellOrder() ? $taker : $maker;
 
-                // Calculate fee for this trade
-                $fee = $this->calculateFee($fill, $price);
+                // Calculate fee for this trade via FeeCalculatorService
+                $buyerFee  = $this->feeCalculator->calculateFee($fill, $price, $buyerOrder->type);
+                $sellerFee = $this->feeCalculator->calculateFee($fill, $price, $sellerOrder->type);
 
                 // Compute new status and remaining amounts
                 $newTakerRemaining = $takerRemaining - $fill;
@@ -126,49 +132,19 @@ class MatchingService implements MatchingServiceInterface
                     'amount'            => $fill,
                     'price'             => $price,
                     'total'             => $fill * $price,
-                    'fee'               => $fee,
+                    'buyer_fee'         => $buyerFee,
+                    'seller_fee'        => $sellerFee,
                 ]);
 
                 /**
                  * @var Trade $trade
                  */
-                event(new TradeExecuted($trade));
+                TradeExecuted::dispatch($trade);
 
                 $filledTrades[] = $trade;
             }
 
             return $filledTrades;
         });
-    }
-
-    /**
-     * @param float $amount
-     * @param float $price
-     * @return int
-     */
-    private function calculateFee(float $amount, float $price): int
-    {
-        if ($amount <= 1.0) {
-            $percentage = 2.0;
-        } elseif ($amount <= 10.0) {
-            $percentage = 1.5;
-        } else {
-            $percentage = 1.0;
-        }
-
-        // Raw fee computation
-        $rawFee = $amount * $price * ($percentage / 100);
-        $fee = (int) round($rawFee);
-
-        // Apply min/max caps
-        if ($fee < self::MIN_FEE) {
-            return self::MIN_FEE;
-        }
-
-        if ($fee > self::MAX_FEE) {
-            return self::MAX_FEE;
-        }
-
-        return $fee;
     }
 }

@@ -18,12 +18,6 @@ use App\Http\Controllers\API\V1\Trade\TradeController;
 |
 */
 
-Route::get('/test', function () {
-    $service = app()->make(\App\Services\Interfaces\MatchingServiceInterface::class);
-
-    dd($service->processOrder(3));
-});
-
 // API V1 Routes
 Route::prefix('v1')->group(function () {
     // Public routes

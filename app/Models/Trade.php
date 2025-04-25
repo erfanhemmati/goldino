@@ -21,14 +21,16 @@ class Trade extends Model
         'amount',
         'price',
         'total',
-        'fee',
+        'buyer_fee',
+        'seller_fee',
     ];
 
     protected $casts = [
-        'amount'    => 'decimal:8',
-        'price'     => 'decimal:8',
-        'total'     => 'decimal:8',
-        'fee'       => 'decimal:8',
+        'amount'        => 'decimal:8',
+        'price'         => 'decimal:8',
+        'total'         => 'decimal:8',
+        'buyer_fee'     => 'decimal:8',
+        'seller_fee'    => 'decimal:8',
     ];
 
     /**

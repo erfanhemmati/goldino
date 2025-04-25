@@ -3,10 +3,11 @@
 namespace App\Events;
 
 use App\Models\Trade;
-use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 
-class TradeExecuted
+class TradeExecuted implements ShouldDispatchAfterCommit
 {
     use Dispatchable, SerializesModels;
 
@@ -26,4 +27,4 @@ class TradeExecuted
     {
         $this->trade = $trade;
     }
-} 
+}

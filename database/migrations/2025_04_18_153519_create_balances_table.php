@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('coin_id')->constrained('coins')->onDelete('cascade');
-            $table->decimal('total_amount', 18, 8)->default(0)->unsigned();
-            $table->decimal('available_amount', 18, 8)->default(0)->unsigned();
-            $table->decimal('locked_amount', 18, 8)->default(0)->unsigned();
+            $table->decimal('total_amount', 24, 8)->default(0)->unsigned();
+            $table->decimal('available_amount', 24, 8)->default(0)->unsigned();
+            $table->decimal('locked_amount', 24, 8)->default(0)->unsigned();
             $table->unique(['user_id', 'coin_id']);
             $table->timestamps();
         });
