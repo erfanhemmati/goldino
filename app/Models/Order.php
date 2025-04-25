@@ -13,13 +13,6 @@ class Order extends Model
 {
     use HasFactory;
 
-    const TYPE_BUY = 'BUY';
-    const TYPE_SELL = 'SELL';
-
-    const STATUS_OPEN = 'OPEN';
-    const STATUS_COMPLETED = 'COMPLETED';
-    const STATUS_CANCELED = 'CANCELED';
-
     protected $fillable = [
         'user_id',
         'base_coin_id',

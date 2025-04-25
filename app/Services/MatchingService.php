@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\Trade;
 use App\Enums\OrderType;
@@ -103,8 +104,8 @@ class MatchingService implements MatchingServiceInterface
                 // Compute new status and remaining amounts
                 $newTakerRemaining = $takerRemaining - $fill;
                 $newMakerRemaining = $makerRemaining - $fill;
-                $newTakerStatus    = $newTakerRemaining > 0 ? Order::STATUS_OPEN : Order::STATUS_COMPLETED;
-                $newMakerStatus    = $newMakerRemaining > 0 ? Order::STATUS_OPEN : Order::STATUS_COMPLETED;
+                $newTakerStatus    = $newTakerRemaining > 0 ? OrderStatus::OPEN->value : OrderStatus::COMPLETED->value;
+                $newMakerStatus    = $newMakerRemaining > 0 ? OrderStatus::OPEN->value : OrderStatus::COMPLETED->value;
 
                 // Update taker order
                 $taker = $this->orderRepository->update([

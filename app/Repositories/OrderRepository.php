@@ -80,7 +80,7 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
     public function findSellMatchingOrders(int $baseCoinId, int $quoteCoinId, float $price, int $excludeUserId): Collection
     {
         return $this->model->query()
-            ->where('status', Order::STATUS_OPEN)
+            ->where('status', OrderStatus::OPEN->value)
             ->where('base_coin_id', $baseCoinId)
             ->where('quote_coin_id', $quoteCoinId)
             ->where('user_id', '!=', $excludeUserId)
