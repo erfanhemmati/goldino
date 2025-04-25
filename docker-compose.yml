@@ -16,7 +16,7 @@ services:
       CACHE_DRIVER: redis
       CACHE_STORE: redis
       QUEUE_CONNECTION: redis
-      MIGRATE: "false"
+      MIGRATE: "true"
     restart: unless-stopped
     working_dir: /var/www/html
     volumes:
@@ -83,7 +83,7 @@ services:
       CACHE_DRIVER: redis
       CACHE_STORE: redis
       QUEUE_CONNECTION: redis
-      MIGRATE: "false"
+      MIGRATE: "true"
     restart: unless-stopped
     working_dir: /var/www/html
     volumes:
