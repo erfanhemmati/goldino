@@ -44,9 +44,14 @@ A RESTful API for gold trading between users with order matching functionality d
    docker compose up -d --build
    ```
 
-4. The application will automatically install dependencies, generate the application key, run migrations, and seed the database.
+4. (First-time only) Install PHP dependencies inside the container:
+   ```
+   docker compose exec app composer install --optimize-autoloader --no-dev
+   ```
 
-5. (Optional) To optimize performance, cache the configuration and routes:
+5. The application will automatically generate the application key, run migrations, and seed the database on first run.
+
+6. (Optional) To optimize performance, cache the configuration and routes:
    ```
    docker compose exec app php artisan config:cache
    docker compose exec app php artisan route:cache
