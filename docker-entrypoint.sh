@@ -13,6 +13,12 @@ if [ ! -f .env ]; then
     cp .env.example .env
 fi
 
+# Install Composer dependencies if missing
+if [ ! -f vendor/autoload.php ]; then
+    echo "Installing Composer dependencies..."
+    composer install --optimize-autoloader --no-dev --no-interaction
+fi
+
 if [ -z "$APP_KEY" ]; then
     php artisan key:generate --ansi
 fi
